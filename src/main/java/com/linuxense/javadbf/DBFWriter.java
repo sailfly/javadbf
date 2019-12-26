@@ -212,15 +212,15 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 		for (DBFField field: fields) {
 			if (!field.getType().isWriteSupported()) {
 				throw new DBFException(
-				"Field " + field.getName() + " is of type " + field.getType() + " that is not supported for writting");
+						"Field " + field.getName() + " is of type " + field.getType() + " that is not supported for writting");
 			}
 		}
 		this.header.fieldArray = new DBFField[fields.length];
 		for (int i = 0; i < fields.length; i++) {
 			this.header.fieldArray[i] = new DBFField(fields[i]);
 		}
-		
-		
+
+
 		try {
 			if (this.raf != null && this.raf.length() > 0) {
 				throw new DBFException("You can not change fields on an existing file");
@@ -262,32 +262,32 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 
 			switch (this.header.fieldArray[i].getType()) {
 
-			case CHARACTER:
-				if (!(value instanceof String)) {
-					throw new DBFException("Invalid value for field " + i + ":" + value);
-				}
-				break;
+				case CHARACTER:
+					if (!(value instanceof String)) {
+						throw new DBFException("Invalid value for field " + i + ":" + value);
+					}
+					break;
 
-			case LOGICAL:
-				if (!(value instanceof Boolean)) {
-					throw new DBFException("Invalid value for field " + i + ":" + value);
-				}
-				break;
+				case LOGICAL:
+					if (!(value instanceof Boolean)) {
+						throw new DBFException("Invalid value for field " + i + ":" + value);
+					}
+					break;
 
-			case DATE:
-				if (!(value instanceof Date)) {
-					throw new DBFException("Invalid value for field " + i + ":" + value);
-				}
-				break;
-			case NUMERIC:
-			case FLOATING_POINT:
-				if (!(value instanceof Number)) {
-					throw new DBFException("Invalid value for field " + i + ":" + value);
-				}
-				break;
-			default:
-				throw new DBFException("Unsupported writting of field type " + i + " "
-						+ this.header.fieldArray[i].getType());
+				case DATE:
+					if (!(value instanceof Date)) {
+						throw new DBFException("Invalid value for field " + i + ":" + value);
+					}
+					break;
+				case NUMERIC:
+				case FLOATING_POINT:
+					if (!(value instanceof Number)) {
+						throw new DBFException("Invalid value for field " + i + ":" + value);
+					}
+					break;
+				default:
+					throw new DBFException("Unsupported writting of field type " + i + " "
+							+ this.header.fieldArray[i].getType());
 			}
 
 		}
@@ -340,11 +340,11 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 			 * record count and the END_OF_DATA mark
 			 */
 			try {
-				this.header.numberOfRecords = this.recordCount;
-				this.raf.seek(0);
-				this.header.write(this.raf);
 				this.raf.seek(this.raf.length());
 				this.raf.writeByte(END_OF_DATA);
+				this.raf.seek(0);
+				this.header.numberOfRecords = this.recordCount;
+				this.header.write(this.raf, true);
 			}
 			catch (IOException e) {
 				throw new DBFException(e.getMessage(), e);
@@ -371,57 +371,57 @@ public class DBFWriter extends DBFBase implements java.io.Closeable {
 			/* iterate throught fields */
 			switch (this.header.fieldArray[j].getType()) {
 
-			case CHARACTER:
-				String strValue = "";
-				if (objectArray[j] != null) {
-					strValue = objectArray[j].toString();
-				}
-				dataOutput.write(DBFUtils.textPadding(strValue, getCharset(), this.header.fieldArray[j].getLength(), DBFAlignment.LEFT, (byte) ' '));
-
-				break;
-
-			case DATE:
-				if (objectArray[j] != null) {
-					GregorianCalendar calendar = new GregorianCalendar();
-					calendar.setTime((Date) objectArray[j]);
-					dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes(StandardCharsets.US_ASCII));
-					dataOutput.write(DBFUtils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1),
-							StandardCharsets.US_ASCII, 2, DBFAlignment.RIGHT, (byte) '0'));
-					dataOutput.write(DBFUtils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)),
-							StandardCharsets.US_ASCII, 2, DBFAlignment.RIGHT, (byte) '0'));
-				} else {
-					dataOutput.write("        ".getBytes(StandardCharsets.US_ASCII));
-				}
-
-				break;
-			case NUMERIC:
-			case FLOATING_POINT:
-
-				if (objectArray[j] != null) {
-					dataOutput.write(DBFUtils.doubleFormating((Number) objectArray[j], getCharset(),
-							this.header.fieldArray[j].getLength(), this.header.fieldArray[j].getDecimalCount()));
-				} else {
-					dataOutput.write(DBFUtils.textPadding(" ", getCharset(), this.header.fieldArray[j].getLength(), DBFAlignment.RIGHT, (byte) ' '));
-				}
-
-				break;
-
-			case LOGICAL:
-
-				if (objectArray[j] instanceof Boolean) {
-					if ((Boolean) objectArray[j]) {
-						dataOutput.write((byte) 'T');
-					} else {
-						dataOutput.write((byte) 'F');
+				case CHARACTER:
+					String strValue = "";
+					if (objectArray[j] != null) {
+						strValue = objectArray[j].toString();
 					}
-				} else {
-					dataOutput.write((byte) '?');
-				}
+					dataOutput.write(DBFUtils.textPadding(strValue, getCharset(), this.header.fieldArray[j].getLength(), DBFAlignment.LEFT, (byte) ' '));
 
-				break;
+					break;
 
-			default:
-				throw new DBFException("Unknown field type " + this.header.fieldArray[j].getType());
+				case DATE:
+					if (objectArray[j] != null) {
+						GregorianCalendar calendar = new GregorianCalendar();
+						calendar.setTime((Date) objectArray[j]);
+						dataOutput.write(String.valueOf(calendar.get(Calendar.YEAR)).getBytes(StandardCharsets.US_ASCII));
+						dataOutput.write(DBFUtils.textPadding(String.valueOf(calendar.get(Calendar.MONTH) + 1),
+								StandardCharsets.US_ASCII, 2, DBFAlignment.RIGHT, (byte) '0'));
+						dataOutput.write(DBFUtils.textPadding(String.valueOf(calendar.get(Calendar.DAY_OF_MONTH)),
+								StandardCharsets.US_ASCII, 2, DBFAlignment.RIGHT, (byte) '0'));
+					} else {
+						dataOutput.write("        ".getBytes(StandardCharsets.US_ASCII));
+					}
+
+					break;
+				case NUMERIC:
+				case FLOATING_POINT:
+
+					if (objectArray[j] != null) {
+						dataOutput.write(DBFUtils.doubleFormating((Number) objectArray[j], getCharset(),
+								this.header.fieldArray[j].getLength(), this.header.fieldArray[j].getDecimalCount()));
+					} else {
+						dataOutput.write(DBFUtils.textPadding(" ", getCharset(), this.header.fieldArray[j].getLength(), DBFAlignment.RIGHT, (byte) ' '));
+					}
+
+					break;
+
+				case LOGICAL:
+
+					if (objectArray[j] instanceof Boolean) {
+						if ((Boolean) objectArray[j]) {
+							dataOutput.write((byte) 'T');
+						} else {
+							dataOutput.write((byte) 'F');
+						}
+					} else {
+						dataOutput.write((byte) '?');
+					}
+
+					break;
+
+				default:
+					throw new DBFException("Unknown field type " + this.header.fieldArray[j].getType());
 			}
 		}
 	}
